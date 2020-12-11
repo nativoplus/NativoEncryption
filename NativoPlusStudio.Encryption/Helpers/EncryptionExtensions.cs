@@ -16,6 +16,5 @@ namespace NativoPlusStudio.Encryption.Helpers
 
             return cipher;
         }
-
     }
 }
