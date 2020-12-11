@@ -21,7 +21,7 @@
         /// <summary>
         /// This method accepts a string, transforms it to two strings, one of 32 length and another of 16 length and converts them to base 64 strings and returns them.
         /// </summary>
-        /// <param name="key"></param>
+        /// <param name="value"></param>
         /// <returns></returns>
         public (string KeyBase64, string IVBase64) GenerateSymmetricEncryptionKeyIV(string value);
     }
