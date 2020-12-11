@@ -16,7 +16,6 @@ namespace NativoPlusStudio.EncryptionTests
             IConfiguration configuration = new ConfigurationBuilder()
              .SetBasePath(Directory.GetCurrentDirectory())
              .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-             .AddInMemoryCollection(new Dictionary<string, string>() { { "EncryptionConfiguration:MyPrivateKey", "somekey"} })
              .Build();
 
             serviceProvider = new ServiceCollection()
