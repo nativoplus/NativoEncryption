@@ -8,7 +8,7 @@ using System.Text;
 
 namespace NativoPlusStudio.Encryption.Services
 {
-    public class SymmetricEncryptionService : ISymmetricEncryption
+    public class SymmetricEncryptionService : IEncryption
     {
         private readonly EncryptionConfiguration _encryptionConfiguration;
         private readonly ILogger _logger;
@@ -35,7 +35,7 @@ namespace NativoPlusStudio.Encryption.Services
             }
         }
 
-        public string Encrypt(string text, string IV = null, string key = null)
+        public string Encrypt(string text, Func<string, string, (string, string)> encryptionKeyGenerator = null)
         {
             _logger.Information("#Encrypt start");
             if (string.IsNullOrEmpty(text))
@@ -44,21 +44,18 @@ namespace NativoPlusStudio.Encryption.Services
                 return string.Empty;
             }
 
-            if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(IV))
-            {
-                var (Key, IVBase64) = GenerateSymmetricEncryptionKeyIV(_encryptionConfiguration.MyPrivateKey);
-                key = Key;
-                IV = IVBase64;
-            }
+            var (Key, IVBase64) = encryptionKeyGenerator == null
+                ? GenerateSymmetricEncryptionKeyIV(_encryptionConfiguration.PrimaryPrivateKey, _encryptionConfiguration.SecondaryPrivateKey)
+                : encryptionKeyGenerator(_encryptionConfiguration.PrimaryPrivateKey, _encryptionConfiguration.SecondaryPrivateKey);
 
-            if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(IV))
+            if (string.IsNullOrEmpty(Key) || string.IsNullOrEmpty(IVBase64))
             {
                 _logger.Information("#Encrypt configure the key through DI or pass the key and IV parameters");
                 return string.Empty;
             }
 
-            Aes cipher = key.CreateCipher();
-            cipher.IV = Convert.FromBase64String(IV);
+            Aes cipher = Key.CreateCipher();
+            cipher.IV = Convert.FromBase64String(IVBase64);
 
             ICryptoTransform cryptTransform = cipher.CreateEncryptor();
             byte[] plaintext = Encoding.UTF8.GetBytes(text);
@@ -67,7 +64,7 @@ namespace NativoPlusStudio.Encryption.Services
             return Convert.ToBase64String(cipherText);
         }
 
-        public string Decrypt(string encryptedText, string IV = null, string key = null)
+        public string Decrypt(string encryptedText, Func<string, string,(string, string)> encryptionKeyGenerator = null)
         {
             _logger.Information("#Decrypt start");
 
@@ -76,23 +73,20 @@ namespace NativoPlusStudio.Encryption.Services
                 _logger.Information("#Decrypt the text to decrypt is empty");
                 return string.Empty;
             }
+            
+            var (Key, IVBase64) = encryptionKeyGenerator == null 
+                ? GenerateSymmetricEncryptionKeyIV(_encryptionConfiguration.PrimaryPrivateKey, _encryptionConfiguration.SecondaryPrivateKey) 
+                : encryptionKeyGenerator(_encryptionConfiguration.PrimaryPrivateKey, _encryptionConfiguration.SecondaryPrivateKey);
 
-            if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(IV))
-            {
-                var (Key, IVBase64) = GenerateSymmetricEncryptionKeyIV(_encryptionConfiguration.MyPrivateKey);
-                key = Key;
-                IV = IVBase64;
-            }
-
-            if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(IV))
+            if (string.IsNullOrEmpty(Key) || string.IsNullOrEmpty(IVBase64))
             {
                 _logger.Information("#Decrypt configure the key through DI or pass the key and IV parameters");
 
                 return string.Empty;
             }
 
-            Aes cipher = key.CreateCipher();
-            cipher.IV = Convert.FromBase64String(IV);
+            Aes cipher = Key.CreateCipher();
+            cipher.IV = Convert.FromBase64String(IVBase64);
 
             ICryptoTransform cryptTransform = cipher.CreateDecryptor();
             byte[] encryptedBytes = Convert.FromBase64String(encryptedText);
@@ -101,14 +95,14 @@ namespace NativoPlusStudio.Encryption.Services
             return Encoding.UTF8.GetString(plainBytes);
         }
         
-        public (string KeyBase64, string IVBase64) GenerateSymmetricEncryptionKeyIV(string value)
+        private (string KeyBase64, string IVBase64) GenerateSymmetricEncryptionKeyIV(string primaryKey, string secondaryKey = null)
         {
             _logger.Information("#GenerateSymmetricEncryptionKeyIV start");
 
             //make sure the key has 32 characters
-            var key = GetEncodedText(value, 32); // 32 characters
+            var key = GetEncodedText(primaryKey, 32); // 32 characters
             //make sure the iv has 16 characters
-            var iv = GetEncodedText(value, 16); // 16 characters
+            var iv = GetEncodedText(string.IsNullOrEmpty(secondaryKey) ? primaryKey : secondaryKey, 16); // 16 characters
             return (key, iv);
         }
 

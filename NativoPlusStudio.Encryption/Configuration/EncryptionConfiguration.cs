@@ -2,6 +2,7 @@
 {
     public class EncryptionConfiguration
     {
-        public string MyPrivateKey { get; set; }
+        public string PrimaryPrivateKey { get; set; }
+        public string SecondaryPrivateKey { get; set; }
     }
 }
