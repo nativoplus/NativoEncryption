@@ -12,8 +12,9 @@ namespace NativoPlusStudio.Encryption.Services
     {
         private readonly EncryptionConfiguration _encryptionConfiguration;
         private readonly ILogger _logger;
-        public SymmetricEncryptionService(EncryptionConfiguration encryptionConfiguration = null, ILogger logger = null)
+        public SymmetricEncryptionService(EncryptionConfiguration encryptionConfiguration, ILogger logger = null)
         {
+
             if (logger == null)
             {
                 _logger = new LoggerConfiguration()
@@ -24,15 +25,11 @@ namespace NativoPlusStudio.Encryption.Services
             {
                 _logger = logger;
             }
+
+            if (string.IsNullOrEmpty(encryptionConfiguration?.PrimaryPrivateKey)) throw new ArgumentNullException("The PrimaryPrivateKey is empty");
+
+            _encryptionConfiguration = encryptionConfiguration;
             
-            if (encryptionConfiguration == null)
-            {
-                _encryptionConfiguration = new EncryptionConfiguration();
-            }
-            else
-            {
-                _encryptionConfiguration = encryptionConfiguration;
-            }
         }
 
         public string Encrypt(string text, Func<string, string, (string, string)> encryptionKeyGenerator = null)
