@@ -7,11 +7,11 @@ namespace NativoPlusStudio.EncryptionTests
     [TestClass]
     public class EncryptionTest : BaseTestConfiguration
     {
-        private readonly ISymmetricEncryption _symmetricEncryption;
+        private readonly IEncryption _symmetricEncryption;
 
         public EncryptionTest()
         {
-            _symmetricEncryption = serviceProvider.GetRequiredService<ISymmetricEncryption>();
+            _symmetricEncryption = serviceProvider.GetRequiredService<IEncryption>();
         }
         
         [TestMethod]

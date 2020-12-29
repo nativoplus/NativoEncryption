@@ -17,7 +17,7 @@ namespace NativoPlusStudio.Encryption
             }
 
             services.AddSingleton(BuildEncryptionConfiguration(configuration));
-            services.AddTransient<ISymmetricEncryption, SymmetricEncryptionService>();
+            services.AddTransient<IEncryption, SymmetricEncryptionService>();
             return services;
         }
 
@@ -25,7 +25,7 @@ namespace NativoPlusStudio.Encryption
         {
             return x => new EncryptionConfiguration
             {
-                MyPrivateKey = configuration["EncryptionConfiguration:MyPrivateKey"]
+                PrimaryPrivateKey = configuration["EncryptionConfiguration:MyPrivateKey"]
             };
         }
     }
