@@ -34,40 +34,30 @@ public void ConfigureServices(IServiceCollection services)
 ```
 Make sure you set the "EncryptionConfiguration:MyPrivateKey" key/value pair in the Configuration object. 
 
-This isn't required and you can you pass the key and IV parameters in the Encrypt and Decrypt methods instead.
-
 ### Symmetric Encryption
 
 This package only supports Symmetric Encryption at the moment. If you registered the AddEncryptionServices method you can Inject the ISymmetricEncryption interface into a constructor and use the methods Encrypt and Decrypt.
 
 ```csharp
-public interface ISymmetricEncryption
-{
-    /// <summary>
-    /// Decrypts a string using AES Symmetric algorithm
-    /// </summary>
-    /// <param name="encryptedText">Text to be decrypted</param>
-    /// <param name="ivBase64">This is the base 64 initiated vector that was used to encrypt the text</param>
-    /// <param name="keyBase64">This is the base 64 key that was used to encrypt the text</param>
-    /// <returns></returns>
-    string Decrypt(string encryptedText, string ivBase64 = null, string keyBase64 = null);
-
-    /// <summary>
-    /// Encrypts a string using AES Symmetric algorithm
-    /// </summary>
-    /// <param name="text">Text to be encrypted</param>
-    /// <param name="ivBase64">This is the base 64 initiated vector to be used to encrypt the text</param>
-    /// <param name="keyBase64">This is the base 64 key to be used to encrypt the text</param>
-    /// <returns></returns>
-    string Encrypt(string text, string ivBase64 = null, string keyBase64 = null);
-
-    /// <summary>
-    /// This method accepts a string, transforms it to two strings, one of 32 length and another of 16 length and converts them to base 64 strings and returns them.
-    /// </summary>
-    /// <param name="value"></param>
-    /// <returns></returns>
-    public (string KeyBase64, string IVBase64) GenerateSymmetricEncryptionKeyIV(string value);
-}
+public interface IEncryption
+    {
+        /// <summary>
+        /// Decrypts a string using AES Symmetric algorithm
+        /// </summary>
+        /// <param name="encryptedText">Text to be decrypted</param>
+        /// <param name="ivBase64">This is the base 64 initiated vector that was used to encrypt the text</param>
+        /// <param name="keyBase64">This is the base 64 key that was used to encrypt the text</param>
+        /// <returns></returns>
+        string Decrypt(string encryptedText, Func<string, string, (string, string)> encryptionKeyGenerator = null);
+        /// <summary>
+        /// Encrypts a string using AES Symmetric algorithm
+        /// </summary>
+        /// <param name="text">Text to be encrypted</param>
+        /// <param name="ivBase64">This is the base 64 initiated vector to be used to encrypt the text</param>
+        /// <param name="keyBase64">This is the base 64 key to be used to encrypt the text</param>
+        /// <returns></returns>
+        string Encrypt(string text, Func<string, string, (string, string)> encryptionKeyGenerator = null);
+    }
 ```
 
 ### Usage
@@ -90,16 +80,20 @@ namespace ConsoleApp1
         static void Main(string[] args)
         {
             IConfiguration configuration = new ConfigurationBuilder()
-             .AddInMemoryCollection(new Dictionary<string, string>() { { "EncryptionConfiguration:MyPrivateKey", "somekey" } })
+             .AddInMemoryCollection(new Dictionary<string, string>() 
+             { 
+                 { "EncryptionConfiguration:PrimaryPrivateKey", "somekey" }
+                 //{ "EncryptionConfiguration:SecondaryPrivateKey", "optionalkey" }
+            })
              .Build();
 
             serviceProvider = new ServiceCollection()
                 .AddEncryptionServices(configuration)
                 .BuildServiceProvider();
 
-            ISymmetricEncryption symmetricEncryption = serviceProvider.GetRequiredService<ISymmetricEncryption>();
+            IEncryption symmetricEncryption = serviceProvider.GetRequiredService<IEncryption>();
             // or if you didnt register the AddEncryptionServices() method
-            //ISymmetricEncryption symmetricEncryption = new SymmetricEncryptionService(encryptionConfiguration: new EncryptionConfiguration { MyPrivateKey = "somekey" });
+            //ISymmetricEncryption symmetricEncryption = new SymmetricEncryptionService(encryptionConfiguration: new EncryptionConfiguration { PrimaryPrivateKey = "somekey" });
 
             var text = "I like this!";
 
