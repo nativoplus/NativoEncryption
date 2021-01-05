@@ -70,7 +70,14 @@ namespace NativoPlusStudio.Encryption.Services
                 _logger.Information("#Decrypt the text to decrypt is empty");
                 return string.Empty;
             }
-            
+
+            if (!encryptedText.IsBase64String())
+            {
+                _logger.Information("#Decrypt the text to decrypt is not encrypted");
+
+                return encryptedText;
+            }
+
             var (Key, IVBase64) = encryptionKeyGenerator == null 
                 ? GenerateSymmetricEncryptionKeyIV(_encryptionConfiguration.PrimaryPrivateKey, _encryptionConfiguration.SecondaryPrivateKey) 
                 : encryptionKeyGenerator(_encryptionConfiguration.PrimaryPrivateKey, _encryptionConfiguration.SecondaryPrivateKey);

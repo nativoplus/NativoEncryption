@@ -43,5 +43,15 @@ namespace NativoPlusStudio.EncryptionTests
             Assert.IsTrue(!string.IsNullOrEmpty(encryptedText));
             Assert.IsTrue(decryptedMessage == textToEncrypt);
         }
+        
+        [TestMethod]
+        public void TestDecryptingUnencryptedText()
+        {
+            var textToEncrypt = "Hello World!";
+            var decryptedMessage = _symmetricEncryption.Decrypt(textToEncrypt);
+
+            Assert.IsTrue(!string.IsNullOrEmpty(decryptedMessage));
+            Assert.IsTrue(decryptedMessage == textToEncrypt);
+        }
     }
 }
